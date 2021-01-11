@@ -8,7 +8,7 @@ const TeacherSchema = new Schema({
     },
     schoolId:{
         type:String,
-        default: true
+        default: "T-001"
     },
     education:{
         type:String,

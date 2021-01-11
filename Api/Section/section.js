@@ -1,6 +1,6 @@
 const Router = require('express').Router();
 // aquring the section model
-const {Section} = require("../../Models");
+const {Section,Class} = require("../../Models");
 
 Router.get("/record",(req,res)=>{
     Section.find().then(sections=>{
@@ -54,23 +54,42 @@ Router.put("/record/:id",(req,res)=>{
                     return res.json({error:{message:"Section Name Already Exist",errorCode:500},success:false}).status(400);
                 }
                 else{
-                    Section.findByIdAndUpdate({_id:req.params.id},{section}).then(updateSection =>{
-                        if(updateSection === null){
-                            return res.json({error:{message:"Section Not Exist Against Id",errorCode:500},success:false}).status(400);
-                        }
-                        else{
-                            if(section.name !==""){
-                                updateSection.name=section.name;
+                    Class.findOne({section:req.params.id}).then(classSection=>
+                        {
+                            if(classSection !== null)
+                            {
+                                return res.json({error:{message:"You Can't Update Because Class Exists Against This Section",errorCode:500},success:false}).status(400);
                             }
-                            updateSection.save().then(updatedSection =>{
-                                return res.json({message:"Section Name Updated Successfully",section:updatedSection,success:true}).status(200);
-                            }).catch(err => {
-                                return res.json({error:{message:"Catch Error, While Saving Updated Record",errorCode:500},success:false}).status(400);
-                            })
-                        }
-                    })
+                            else
+                            {
+                                Section.findByIdAndUpdate({_id:req.params.id},{section}).then(updateSection =>{
+                                    if(updateSection === null){
+                                        return res.json({error:{message:"Section Not Exist Against Id",errorCode:500},success:false}).status(400);
+                                    }
+                                    else{
+                                        if(section.name !==""){
+                                            updateSection.name=section.name;
+                                        }
+                                        updateSection.save().then(updatedSection =>{
+                                            return res.json({message:"Section Name Updated Successfully",section:updatedSection,success:true}).status(200);
+                                        }).catch(err => {
+                                            return res.json({error:{message:"Catch Error, While Saving Updated Record",errorCode:500},success:false}).status(400);
+                                        })
+                                    }
+                                }).catch(err =>
+                                    {
+                                        return res.json({error:{message:"Catch Error, While Finding Section Id",errorCode:500},success:false}).status(400);
+                                    })
+                            }
+                        }).catch(err=>{
+                            return res.json({error:{message:"Catch Error, While Finding Section In Class ",errorCode:500},success:false}).status(400);
+                        })
+                    
                 }
-            })
+            }).catch(err=>
+                {
+                    return res.json({error:{message:"Catch Error,Finding Section Name",errorCode:500},success:false}).status(400);   
+                })
         }
 
     }
@@ -81,16 +100,28 @@ Router.put("/record/:id",(req,res)=>{
 })
 // Deleting Section Record
 Router.delete("/record/:id",(req,res)=>{
-    Section.findByIdAndRemove({_id:req.params.id}).then(sectionDelete =>{
-        if(!sectionDelete){
-            return res.json({error:{message:"Section Id Not Exists",errorCode:500},success:false}).status(400);
-        }
-        else{
-            return res.json({message:"Section Deleted Successfully",section:sectionDelete,success:true}).status(200);
-        }
-    }).catch(err => {
-        return res.json({error:{message:"Catch Error, While Deleting Section",errorCode:500},success:false}).status(400);
-    })
+    Class.findOne({section:req.params.id}).then(findClass=>
+        {
+            if(findClass !==null)
+            {
+                return res.json({error:{message:"You Can't Delete Because Class Exists Against This Section",errorCode:500},success:false}).status(400);
+            }
+            else{
+                Section.findByIdAndRemove({_id:req.params.id}).then(sectionDelete =>{
+                    if(!sectionDelete){
+                        return res.json({error:{message:"Section Id Not Exists",errorCode:500},success:false}).status(400);
+                    }
+                    else{
+                        return res.json({message:"Section Deleted Successfully",section:sectionDelete,success:true}).status(200);
+                    }
+                }).catch(err => {
+                    return res.json({error:{message:"Catch Error, While Deleting Section",errorCode:500},success:false}).status(400);
+                })
+            }
+        }).catch(err =>{
+            return res.json({error:{message:"Catch Error, While Finding Section In Class ",errorCode:500},success:false}).status(400);
+        })
+    
 })
 
 module.exports =Router;

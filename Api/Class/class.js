@@ -4,7 +4,7 @@ const {Class , Section ,Teacher} = require("../../Models");
 
 // getting class data 
 Router.get("/record", (req,res) => {
-    Class.find().populate('section','name').populate('teacher','name subject education')
+    Class.find().populate('section','name').populate('teacher','name subject education schoolId')
     .then(classRecord => {
         return res.json({message:"Classes Records",Class:classRecord,success:true}).status(200);
     }).catch(err =>{
@@ -133,6 +133,5 @@ Router.delete("/record/:id",(req,res)=>{
         return res.json({error:{message:"Catch Error, While Deleting Class",errorCode:500},success:false}).status(400);
     })
 })
-
 
 module.exports =Router;

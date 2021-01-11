@@ -85,23 +85,26 @@ Router.get("/getDiaryStudent/:date",(req,res)=>{
         })
 })
 // updating Diary by Teacher Against Date
-// Router.put('/detail/:date',myUpload.single('file'),(req,res)=>{
-//     const image = req.body.image
-//     Diary.findOneAndUpdate({date:req.params.date}).then(find=>
-//         {
-//             if(find === null)
-//             {
-//                 return res.json({error:{message:"No Diary Exist Against This Date",errorCode:500},success:false}).status(400);
-//             }
-//             else{
-//                 if(find.image !== ""){
-//                     find.image = req.body.image
-//                 }
-                
-//             }
-//         })
+Router.put('/detail/:date',myUpload.single('file'),(req,res)=>{
+    Diary.findOneAndUpdate({date:req.params.date}).then(findDiary=>
+        {
+            if(findDiary === null)
+            {
+                return res.json({error:{message:"No Dairy Exists Againsts This Date",errorCode:500},success:false}).status(400); 
+            }
+            else{
+                if(findDiary.image !==null)
+                {
+                findDiary.image = `/files/image/${req.file.filename}`
+                }
+                findDiary.save().then(updatedDiary =>
+                    {
+                        return res.json({message:"Diary Updated Successfully",Diary:updatedDiary,success:true}).status(200);
+                    })
+            }
+        })
 
-// })
+})
 // deleting diary record by teacher against date
 Router.delete('/detail/:date',(req,res)=>{
     Diary.findOneAndRemove({date:req.params.date}).then(removed=>

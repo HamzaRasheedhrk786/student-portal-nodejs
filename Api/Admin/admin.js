@@ -104,7 +104,6 @@ Router.post("/login",(req,res)=>{
         else{
             return res.json({error:{message:errorMessage,errorCode:500},success:false}).status(400);   
         }
-
     }
     catch(err){
         return res.json({error:{message:"Catch Error, While Login Admin",errorCode:500},success:false}).status(400);     
