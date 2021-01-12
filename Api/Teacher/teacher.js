@@ -39,7 +39,20 @@ Router.post("/record",(req,res)=>{
            Teacher.findOne().sort({_id:-1}).limit(1).then(find =>
             {
                 if(find === null){
-                                return res.json({error:{message:"Teacher SchoolId Not Found",errorCode:500},success:false}).status(400);  
+                    let newTeacher = new Teacher({
+                        name:teacher.name,
+                        schoolId:teacher.schoolId,
+                        education:teacher.education,
+                        subject:teacher.subject
+                    })
+                    newTeacher.save().then(savedTeacher =>
+                        {
+                            return res.json({message:"Teacher Saved Successfully",Teacher:savedTeacher,success:true}).status(200);
+                        }).catch(err =>
+                            {
+                                return res.json({error:{message:"Catch Error Saving First Teacher Data",errorCode:500},success:false}).status(400);
+                            })
+                                 
                             }
                             else{
                                 let sId = find.schoolId;
