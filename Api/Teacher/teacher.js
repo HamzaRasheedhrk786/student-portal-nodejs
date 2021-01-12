@@ -59,7 +59,7 @@ Router.post("/record",(req,res)=>{
                                 let num = parseInt(getPart); // returns 1
                                 let newVal = num+1; // returns 2
                                 let reg = new RegExp(num); // create dynamic regexp
-                                teacher.schoolId = sId.replace ( reg, newVal ); // returns T-001
+                                teacher.schoolId = sId.replace ( reg, newVal ); // returns T-002
 
                                 // console.log(sId);
                                 // let str = sId.split("-");
