@@ -56,14 +56,20 @@ Router.post("/record",(req,res)=>{
                             }
                             else{
                                 let sId = find.schoolId;
+                                let getPart = sId.replace ( /[^\d.]/g, '' ); // returns 001
+                                let num = parseInt(getPart); // returns 1
+                                let newVal = num+1; // returns 2
+                                let reg = new RegExp(num); // create dynamic regexp
+                                teacher.schoolId = sId.replace ( reg, newVal ); // returns T-001
+
                                 // console.log(sId);
-                                let str = sId.split("-");
-                                // console.log(str);
-                                let num = parseInt(str[1]);
-                                num++;
-                                // console.log(num)
-                                teacher.schoolId = sId+num;
-                                // console.log(teacher.schoolId)
+                                // let str = sId.split("-");
+                                // // console.log(str);
+                                // let num = parseInt(str[1]);
+                                // num++;
+                                // // console.log(num)
+                                // teacher.schoolId = sId+num;
+                                // // console.log(teacher.schoolId)
                             }
                             let newRecord = new Teacher ( {
                                 name:teacher.name,
