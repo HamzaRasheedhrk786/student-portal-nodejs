@@ -34,8 +34,7 @@ Router.post("/record",(req,res)=>{
         }
         if(errorMessage === false)
         {
-
-            
+            // getting last teacher entry value
            Teacher.findOne().sort({_id:-1}).limit(1).then(find =>
             {
                 if(find === null){
