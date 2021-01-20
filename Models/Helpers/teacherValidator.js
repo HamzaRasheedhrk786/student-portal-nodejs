@@ -6,12 +6,12 @@ const addTeacherValidator = Joi.object({
     education: Joi.string().required(),
     subject:Joi.string().required(),
     email: Joi.string().email().required(),
-    password: Joi.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/).min(8).required()
+    password: Joi.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/,"Minimum 8 characters required including uppercase,lowercase & intergers").min(8).required()
 
 })
 const loginTeacherValidator = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$/).min(8).required()
+    password: Joi.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$,/,"Minimum 8 characters required including uppercase,lowercase & intergers").min(8).required()
 })
 const updateTeacherValidator = Joi.object({
     name: Joi.string().min(3).max(20).required(),
