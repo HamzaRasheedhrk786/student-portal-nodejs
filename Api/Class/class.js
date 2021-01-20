@@ -71,7 +71,7 @@ Router.put("/record/:id",(req,res)=>{
                                         {
                                             Class.findOne({teacher:clasS.teacher}).then(find =>{
                                                 if(find !==null){
-                                                    return res.json({error:{message:"Teacher Id Already Exist",errorCode:500},success:false}).status(400);  
+                                                    return res.json({error:{message:"Teacher Id Already Have Class",errorCode:500},success:false}).status(400);  
                                                 }
                                                 else{
                                                     Class.findByIdAndUpdate({_id:req.params.id},{clasS}).then(updatedClass=>{
