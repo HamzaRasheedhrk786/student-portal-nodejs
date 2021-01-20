@@ -95,7 +95,7 @@ Router.put("/record/:id",(req,res)=>{
                                                 })
                                         }
                                     }).catch(err=>{
-                                        return res.json({error:{message:"Catch Error, While Finding Teacher Against Id",errorCode:500},success:false}).status(400);
+                                        return res.json({error:{message:"Invalid Teacher Id",errorCode:500},success:false}).status(400);
                                     }) 
             }
         }).catch(err=>{
