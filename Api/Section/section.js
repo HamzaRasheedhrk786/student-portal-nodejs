@@ -92,7 +92,7 @@ Router.put("/record/:id",(req,res)=>{
           
         }).catch(err =>
             {
-                return res.json({error:{message:"Invalid Section Name, It Must Be One Character",errorCode:500},success:false}).status(400);
+                return res.json({error:{message:`${err}`,errorCode:500},success:false}).status(400);
             })
         })
 // Deleting Section Record

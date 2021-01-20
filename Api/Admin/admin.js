@@ -2,7 +2,7 @@ const Router = require('express').Router();
 const bcrypt = require('bcryptjs');
 // aquring admin model
 const {Admin} = require("../../Models");
-const { signUpAdminValidator } = require("../../Models/Helpers");
+const { signUpAdminValidator , loginAdminValidator} = require("../../Models/Helpers");
 
 // creating admin sign up
 Router.post("/signup",(req,res)=>{
@@ -54,12 +54,12 @@ Router.post("/signup",(req,res)=>{
 // creating Admin Login 
 Router.post("/login",(req,res)=>{
     const {admin} = req.body;
-    signUpAdminValidator.validateAsync(admin).then(validated =>
+    loginAdminValidator.validateAsync(admin).then(validated =>
         {
             if(validated){
             Admin.findOne({email:admin.email}).then(find =>{
                             if(!find){
-                                return res.json({error:{message:"Admin Not Found",errorCode:500},success:false}).status(400);
+                                return res.json({error:{message:"Email Not Found",errorCode:500},success:false}).status(400);
                             }
                             else
                             {
