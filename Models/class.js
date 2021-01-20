@@ -4,13 +4,9 @@ const Schema = mongoose.Schema;
 const ClassSchema = new Schema({
     section:{
         type:mongoose.SchemaTypes.ObjectId,
-        ref:'tblsections',
-        required:true
+        ref:'tblsections'
     },
-    standard:{
-        type:String,
-        required:true
-    },
+    standard:String,
     teacher:{
         type:mongoose.SchemaTypes.ObjectId,
         ref:'tblteachers'

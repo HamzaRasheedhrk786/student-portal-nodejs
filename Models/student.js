@@ -2,24 +2,15 @@ const mongoose= require('mongoose');
 const Schema = mongoose.Schema;
 // defining schema for student
 const StudentSchema = new Schema({
-    firstName:{
-        type:String,
-        required:true
-    },
-    lastName:{
-        type:String,
-        required:true
-    },
+    firstName:String,
+    lastName:String,
     class:{
         type:mongoose.SchemaTypes.ObjectId,
-        ref:'tblclasses',
-        required:true
+        ref:'tblclasses'
     },
-    registration:
-    {
-        type:String,
-        required:true
-    },
+    registration: String,
+    email:String,
+    password:String,
     status:{
         type:String,
         default:"Inactive"

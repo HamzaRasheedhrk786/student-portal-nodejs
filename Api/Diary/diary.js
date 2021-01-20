@@ -5,12 +5,17 @@ const {Diary ,Class,Student} = require('../../Models');
 const myUpload = require("../Files/storageImageFile").upload;
 
 // creating request for diary //teacher adding diary of class
-Router.post("/detail",myUpload.single('file'),(req,res)=>{
+Router.post("/detail",myUpload.single('image'),(req,res)=>{
     try{
+    const image = req.file;
     const clasS = req.body.clasS;
     if(clasS === undefined || clasS === "")
     {
         return res.json({error:{message:"Invalid Class Name",errorCode:500},success:false}).status(400);
+    }
+    else if(image === undefined || image ==="")
+    {
+        return res.json({error:{message:"Image Not Seclected",errorCode:500},success:false}).status(400);
     }
     else
     {
@@ -31,13 +36,15 @@ Router.post("/detail",myUpload.single('file'),(req,res)=>{
                     })
             }
         }).catch(err=>{
-            return res.json({error:{message:"Catch Error, While Finding Class",errorCode:500},success:false}).status(400);
+            return res.json({error:{message:"Class Id Invalid",errorCode:500},success:false}).status(400);
         })
     }
 }
 catch(err){
-    return res.json({error:{message:"Catch Error, While Finding Class",errorCode:500},success:false}).status(400);
+    console.log(err)
+    return res.json({error:{message:"Catch Error, While Posting Diary",errorCode:500},success:false}).status(400);
 }
+
 })
 // getting the detail of all diarys
 Router.get("/detail",(req,res)=>{
@@ -85,7 +92,11 @@ Router.get("/getDiaryStudent/:date",(req,res)=>{
         })
 })
 // updating Diary by Teacher Against Date
-Router.put('/detail/:date',myUpload.single('file'),(req,res)=>{
+Router.put('/detail/:date',myUpload.single('image'),(req,res)=>{
+    const image = req.file;
+    if(image === undefined || image ===""){
+        return res.json({error:{message:"Image Not Seclected",errorCode:500},success:false}).status(400)
+    }
     Diary.findOneAndUpdate({date:req.params.date}).then(findDiary=>
         {
             if(findDiary === null)
@@ -100,9 +111,14 @@ Router.put('/detail/:date',myUpload.single('file'),(req,res)=>{
                 findDiary.save().then(updatedDiary =>
                     {
                         return res.json({message:"Diary Updated Successfully",Diary:updatedDiary,success:true}).status(200);
+                    }).catch(err =>{
+                        return res.json({error:{message:"Catch Error, While Saving Updated Data",errorCode:500},success:false}).status(400);
                     })
             }
-        })
+        }).catch(err =>
+            {
+                return res.json({error:{message:"Catch Error, While Finding Diary",errorCode:500},success:false}).status(400);
+            })
 
 })
 // deleting diary record by teacher against date

@@ -1,6 +1,7 @@
 const Router = require('express').Router();
 // aquring the section model
 const {Section,Class} = require("../../Models");
+const { addSectionValidator ,updateSectionValidator } = require("../../Models/Helpers");
 
 Router.get("/record",(req,res)=>{
     Section.find().then(sections=>{
@@ -11,45 +12,42 @@ Router.get("/record",(req,res)=>{
 })
 // creating request for section
 Router.post("/record",(req,res)=>{
-    try{
     let {section} = req.body;
-    if(section.name === undefined || section.name === "" || section.name.length !==1)
-    {
-        return res.json({error:{message:"Invalid Section Name",errorCode:500},success:false}).status(400);
-    }
-    else
-    {
-        Section.findOne({name:section.name}).then(sectionFound => {
-            if(sectionFound === null){
-                let newRecord = new Section({
-                    name:section.name
-                })
-                newRecord.save().then(savedSection => {
-                    return res.json({message:"Section Added Successfully",section:savedSection,success:true}).status(200);
-                }).catch(err=> {
-                    return res.json({error:{message:"Catch Error, While Adding Section",errorCode:500},success:false}).status(400);
-                })
-            }
-            else{
-                return res.json({error:{message:"Section Name Already Exists",errorCode:500},success:false}).status(400);
-            }
-        })
-    }
-}
-catch(err){
-    return res.json({error:{message:"Catch Error, While Posting Section",errorCode:500},success:false}).status(400);
-}
+    addSectionValidator.validateAsync( section )
+    .then(  validated => {
+        // return res.json( validated ); 
+        if(validated)
+        {
+            Section.findOne({name:section.name}).then(sectionFound => {
+                            if(sectionFound === null){
+                                let newRecord = new Section({
+                                    name:section.name
+                                })
+                                newRecord.save().then(savedSection => {
+                                    return res.json({message:"Section Added Successfully",section:savedSection,success:true}).status(200);
+                                }).catch(err=> {
+                                    return res.json({error:{message:"Catch Error, While Adding Section",errorCode:500},success:false}).status(400);
+                                })
+                            }
+                            else{
+                                return res.json({error:{message:"Section Name Already Exists",errorCode:500},success:false}).status(400);
+                            }
+                       })
+                 
+        }
+    } ).catch( err => {
+        return res.json({error:{message:`${err}`,errorCode:500},success:false}).status(400); 
+
+    })
 })
 // updating section name
 Router.put("/record/:id",(req,res)=>{
-    try{
-        let {section} =req.body;
-        if(section.name !=="" && section.name.length !==1)
+    let {section} =req.body;
+    updateSectionValidator.validateAsync(section).then(validated =>
         {
-            return res.json({error:{message:"Section Name Invalid",errorCode:500},success:true}).status(400);
-        }
-        else{
-            Section.findOne({name:section.name}).then(findSection =>{
+            if(validated)
+            {
+                Section.findOne({name:section.name}).then(findSection =>{
                 if(findSection !== null){
                     return res.json({error:{message:"Section Name Already Exist",errorCode:500},success:false}).status(400);
                 }
@@ -91,13 +89,12 @@ Router.put("/record/:id",(req,res)=>{
                     return res.json({error:{message:"Catch Error,Finding Section Name",errorCode:500},success:false}).status(400);   
                 })
         }
-
-    }
-    catch(err)
-    {
-        return res.json({error:{message:"Catch Error, While Updation",errorCode:500},success:false}).status(400);
-    }
-})
+          
+        }).catch(err =>
+            {
+                return res.json({error:{message:"Invalid Section Name, It Must Be One Character",errorCode:500},success:false}).status(400);
+            })
+        })
 // Deleting Section Record
 Router.delete("/record/:id",(req,res)=>{
     Class.findOne({section:req.params.id}).then(findClass=>

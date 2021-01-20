@@ -1,12 +1,13 @@
 const Router = require('express').Router();
-// const { MaxKey } = require('mongodb');
+const bcrypt = require('bcryptjs');
+
 // aquiring teacher model
-const {Teacher ,Class, Student, Diary} = require('../../Models');
-// const section = require('../../Models/section');
+const {Teacher ,Class, Student} = require('../../Models');
+const { addTeacherValidator ,loginTeacherValidator, updateTeacherValidator} = require("../../Models/Helpers")
 
 // getting teacher record
 Router.get("/record",(req,res)=>{
-    Teacher.find().then(findTeacher =>{
+    Teacher.find().select("-password").then(findTeacher =>{
         return res.json({message:"Teachers Records",teachers:findTeacher,success:true}).status(200);
     }).catch(err =>{
         return res.json({error:{message:"Error While Getting Teachers Record",errorCode:500},success:false}).status(400);
@@ -14,119 +15,169 @@ Router.get("/record",(req,res)=>{
 })
 
 // creating teacher request
-Router.post("/record",(req,res)=>{
-    try{
-        const {teacher} = req.body;
-        let errorMessage = false;
-        if(teacher.name === undefined || teacher.name === ""){
-            errorMessage = "Invalid Teacher Name";
-        }
-        else if(teacher.education === undefined || teacher.education === ""){
-            errorMessage = "Invalid Teacher Education";
-            
-        }
-        else if(teacher.subject === undefined || teacher.subject === "")
+Router.post("/signUp",(req,res)=>{
+    const {teacher} = req.body;
+    addTeacherValidator.validateAsync(teacher).then(validated =>
         {
-            errorMessage = "Invalid Teacher Subject";
-        }
-        else{
-            errorMessage = false;
-        }
-        if(errorMessage === false)
-        {
-            // getting last teacher entry value
-           Teacher.findOne().sort({_id:-1}).limit(1).then(find =>
-            {
-                if(find === null){
-                    let newTeacher = new Teacher({
-                        name:teacher.name,
-                        schoolId:teacher.schoolId,
-                        education:teacher.education,
-                        subject:teacher.subject
-                    })
-                    newTeacher.save().then(savedTeacher =>
-                        {
-                            return res.json({message:"Teacher Saved Successfully",Teacher:savedTeacher,success:true}).status(200);
-                        }).catch(err =>
-                            {
-                                return res.json({error:{message:"Catch Error Saving First Teacher Data",errorCode:500},success:false}).status(400);
-                            })
-                                 
+            if(validated){
+                Teacher.findOne({email:teacher.email}).then(findAdmin=>{
+                    if(findAdmin !== null){
+                        return res.json({error:{message:"Email Already Exists",errorCode:500},success:false}).status(400);
+                    }
+                    else{
+                        bcrypt.genSalt(10,(err,salt)=>{
+                            if(err){
+                                return res.json({error:{message:"Error While Generating Salt",errorCode:500},success:false}).status(400);
                             }
                             else{
-                                let sId = find.schoolId;
-                                let getPart = sId.replace ( /[^\d.]/g, '' ); // returns 001
-                                let num = parseInt(getPart); // returns 1
-                                let newVal = num+1; // returns 2
-                                let reg = new RegExp(num); // create dynamic regexp
-                                teacher.schoolId = sId.replace ( reg, newVal ); // returns T-002
-
-                                // console.log(sId);
-                                // let str = sId.split("-");
-                                // // console.log(str);
-                                // let num = parseInt(str[1]);
-                                // num++;
-                                // // console.log(num)
-                                // teacher.schoolId = sId+num;
-                                // // console.log(teacher.schoolId)
-                            }
-                            let newRecord = new Teacher ( {
-                                name:teacher.name,
-                                schoolId:teacher.schoolId,
-                                education:teacher.education,
-                                subject:teacher.subject
-                            })
-                            newRecord.save().then(saveTeacher =>{
-                                return res.json({message:"Teacher Saved Successfully",teacher:saveTeacher,success:true}).status(200);
-                            }).catch(err => {
-                                return res.json({error:{message:"Catch Error,While Saving Teacher",errorCode:500},success:false}).status(400);
-                            })
+                                bcrypt.hash(teacher.password,salt,(err,hash)=>{
+                                    if(err){
+                                        return res.json({error:{message:"Error While Generating Hash",errorCode:500},success:false}).status(400);   
+                                    }
+                                    else{ // getting last teacher entry value
+                                        Teacher.findOne().sort({_id:-1}).limit(1).then(find =>
+                                         {
+                                             if(find === null){
+                                                 let newTeacher = new Teacher({
+                                                     name:teacher.name,
+                                                     schoolId:teacher.schoolId,
+                                                     education:teacher.education,
+                                                     subject:teacher.subject,
+                                                     email:teacher.email,
+                                                     password:hash
+                                                 })
+                                                 newTeacher.save().then(savedTeacher =>
+                                                     {
+                                                         return res.json({message:"Teacher Saved Successfully",Teacher:savedTeacher,success:true}).status(200);
+                                                     }).catch(err =>
+                                                         {
+                                                             return res.json({error:{message:"Catch Error Saving First Teacher Data",errorCode:500},success:false}).status(400);
+                                                         })
+                                                              
+                                                         }
+                                                         else{
+                                                             let sId = find.schoolId;
+                                                             let getPart = sId.replace ( /[^\d.]/g, '' ); // returns 001
+                                                             let num = parseInt(getPart); // returns 1
+                                                             let newVal = num+1; // returns 2
+                                                             let reg = new RegExp(num); // create dynamic regexp
+                                                             teacher.schoolId = sId.replace ( reg, newVal ); // returns T-002
+                                                         }
+                                                         let newRecord = new Teacher ( {
+                                                             name:teacher.name,
+                                                             schoolId:teacher.schoolId,
+                                                             education:teacher.education,
+                                                             subject:teacher.subject,
+                                                             email:teacher.email,
+                                                             password:hash
+                                                         })
+                                                         newRecord.save().then(saveTeacher =>{
+                                                             return res.json({message:"Teacher Saved Successfully",teacher:saveTeacher,success:true}).status(200);
+                                                         }).catch(err => {
+                                                             return res.json({error:{message:"Catch Error,While Saving Teacher",errorCode:500},success:false}).status(400);
+                                                         })
+                                         }).catch(err=>
+                                             {
+                                                 return res.json({error:{message:"Catch Error,While Finding Last Teacher Record",errorCode:500},success:false}).status(400);
+                                             })
+                                
+                           }
+                    })
+               }
+            })            
+        }
+    }).catch(err=>
+        {
+            // console.log(err)
+            return res.json({error:{message:"Catch Error, While Finding Email",errorCode:500},success:false}).status(400);
+        }) 
+    }
+        }).catch(err =>
+            {
+                // console.log(err)
+                return res.json({error:{message:`${err}`,errorCode:500},success:false}).status(400);
             })
-            
-        }
-        else{
-            return res.json({error:{message:errorMessage,errorCode:500},success:false}).status(400);
-        }
-    }
-    catch(err)
-    {
-        console.log(err);
-        return res.json({error:{message:"Catch Error, While Creating Teacher",errorCode:500},success:false}).status(400);
-    }
 })
-
+// Login In Teacher
+Router.post('/login',(req,res)=>
+{
+    // try{
+    const {teacher}= req.body;
+    loginTeacherValidator.validateAsync(teacher).then(validated =>
+        {
+            if(validated){
+                Teacher.findOne({email:teacher.email}).then(findTeacher =>{
+                    if(findTeacher === null){
+                        return res.json({error:{message:"Teacher Not Found",errorCode:500},success:false}).status(400);
+                    }
+                    else{
+                        bcrypt.compare(teacher.password,findTeacher.password, (err,match)=>{
+                            if(err){
+                                return res.json({error:{message:"Error In Password",errorCode:500},success:false}).status(400);
+                            }
+                            else if( match === true){
+                                return res.json({message:"Login Successfull",teacher:findTeacher,success:true}).status(200);
+                            }
+                            else{
+                                return res.json({error:{message:"Login Unsuccessfull",errorCode:500},success:false}).status(400);
+                            }
+                        })
+                    }
+                }).catch(err =>{
+                    return res.json({error:{message:"Catch Error, While Finding Email",errorCode:500},success:false}).status(400);
+                })
+            }
+        }).catch(err =>
+            {
+                return res.json({error:{message:`${err}`,errorCode:500},success:false}).status(400);
+            })
+        // }
+        // catch(err){
+        //     return res.json({error:{message:"Catch Error, While Login",errorCode:500},success:false}).status(400);
+        // }       
+})
 //updation teacher Record against id
 Router.put("/record/:id",(req,res)=>{
-    try{
-        const {teacher} = req.body;
-        Teacher.findByIdAndUpdate({_id:req.params.id},{teacher}).then(findTeacher =>{
-            if(findTeacher === null){
-                return res.json({error:{message:"Teacher Id not Exist",errorCode:500},success:false}).status(400);
+    const {teacher} = req.body;
+    updateTeacherValidator.validateAsync(teacher).then(validated =>
+        {
+            if(validated){
+               Teacher.findByIdAndUpdate({_id:req.params.id},{teacher}).then(findTeacher=>{
+                   if(findTeacher === null){
+                       return res.json({error:{message:"Teacher Id Not Found",errorCode:500},success:false}).status(400);
+                   }
+                   else{
+                       if(teacher.name !=="")
+                       {
+                           findTeacher.name = teacher.name
+                       }
+                       if(teacher.education !=="")
+                       {
+                           findTeacher.education = teacher.education
+                       }
+                       if(teacher.subject !=="")
+                       {
+                           findTeacher.subject = teacher.subject
+                       }
+                       findTeacher.save().then(updatedTeacher =>
+                        {
+                            return res.json({message:"Teacher Updated Successfully",Teacher:updatedTeacher,success:true}).status(200);
+                        }).catch(err =>
+                            {
+                                return res.json({error:{message:"Catch Error, While Updating Teacher",errorCode:500},success:false}).status(400);
+                            })
+                   }
+               }).catch(err=>
+                {
+                    return res.json({error:{message:"Catch Error, While Finding Teacher Id",errorCode:500},success:false}).status(400);
+                })
             }
-            if(teacher.name !=="")
-            {
-                findTeacher.name = teacher.name;
-            }
-            if(teacher.education !=="")
-            {
-                findTeacher.education = teacher.education;
-            }
-            if(teacher.subject !==""){
-                findTeacher.subject = teacher.subject;
-            }
-            findTeacher.save().then(updatedTeacher => {
-                return res.json({message:"Teacher Record Updated",teacher:updatedTeacher,success:true}).status(200);
-            }).catch(err=>{
-                return res.json({error:{message:"Catch Error, While Saving Updation",errorCode:500},success:false}).status(400);
-            })
-        })
-    }
-    
-    catch(err)
-    {
-        return res.json({error:{message:"Catch Error, While Updation",errorCode:500},success:false}).status(400);
-    }
 
+        }).catch(err =>
+            {
+                return res.json({error:{message:`${err}`,errorCode:500},success:false}).status(400);
+            })
+    
 })
 // deleting teacher record
 // Deleting Section Record
@@ -225,12 +276,16 @@ Router.put("/activateStudent/:id",(req,res)=>{
             else{
                 Student.findOneAndUpdate({class:classFound._id},{status:teacher.status}).where({"status":"Inactive"}).then(studentclass =>{
                     if(studentclass === null){
-                        return res.json({error:{message:"Student Class Not Found",errorCode:500},success:false}).status(400);
+                        return res.json({error:{message:"No Inactive Student Exist Against Teacher",errorCode:500},success:false}).status(400);
                     }
                     else{
+                        if(teacher.status !=="")
+                        {
+                            studentclass.status = teacher.status
+                        }
                         studentclass.save().then(classStatus =>
                             {
-                                return res.json({message:"Teacher Activated Students",success:true}).status(200);
+                                return res.json({message:"Teacher Activated Students",ActiveStudent:classStatus,success:true}).status(200);
                             }).catch(err =>
                                 {
                                     return res.json({error:{message:"Catch Error, While Activating Teacher Students",errorCode:500},success:false}).status(400);
@@ -248,5 +303,4 @@ Router.put("/activateStudent/:id",(req,res)=>{
         })
     }
 })
-
 module.exports =Router;
