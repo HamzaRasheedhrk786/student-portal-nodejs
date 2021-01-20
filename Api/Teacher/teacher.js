@@ -206,7 +206,7 @@ Router.delete("/record/:id",(req,res)=>{
 })
 // finding class against teacher
 Router.get("/findClass/:id",(req,res)=>{
-    Class.findOne({teacher:req.params.id}).then(teacher=>{
+    Class.findOne({teacher:req.params.id}).populate("teacher","name subject email").then(teacher=>{
         if(teacher === null){
             return res.json({error:{message:"No Class Exist Against Teacher",errorCode:500},success:false}).status(400);
         }
