@@ -4,11 +4,11 @@ const Joi = require('joi');
 const addClassValidator = Joi.object({
     section: Joi.string().required(),
     standard: Joi.string().required(),
-    teacher: Joi.string()
+    teacher: Joi.string().optional()
 })
 // updating class
 const updateClassValidator = Joi.object({
-    teacher: Joi.string().required()
+    teacher: Joi.string().required(),
 })
 
 module.exports = {
